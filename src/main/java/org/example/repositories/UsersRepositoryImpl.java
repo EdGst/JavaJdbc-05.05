@@ -3,6 +3,7 @@ package org.example.repositories;
 import org.example.exception.UsersException;
 import org.example.exception.UsersNotFoundException;
 import org.example.models.entities.Users;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -87,7 +88,8 @@ public class UsersRepositoryImpl implements UsersRepository {
 
             psmt.setString(1, "pseudo");
             psmt.setString(2, "email");
-            psmt.setString(3, "mdp");
+            String hashedPassword = BCrypt.hashpw(users.getMdp(), BCrypt.gensalt());
+            psmt.setString(3, hashedPassword);
 
             ResultSet rs = psmt.executeQuery();
 
