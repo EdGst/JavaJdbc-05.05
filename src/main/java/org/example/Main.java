@@ -1,42 +1,81 @@
 package org.example;
 
-import org.example.models.entities.Book;
-import org.example.models.entities.Users;
-import org.example.models.forms.BookForm;
-import org.example.services.BookServiceImpl;
-import org.example.services.UsersServiceImpl;
 
-import java.util.List;
+import org.example.models.entities.Book;
+import org.example.services.BookServiceImpl;
+import org.example.services.MovieServiceImpl;
+import org.example.services.UserServiceImpl;
 
 public class Main {
     public static void main(String[] args) {
 
         BookServiceImpl bookService = new BookServiceImpl();
-        UsersServiceImpl usersService = new UsersServiceImpl();
-
-        List<Users> users = usersService.getMany();
-        users.forEach(System.out::println);
+        MovieServiceImpl movieService = new MovieServiceImpl();
+        UserServiceImpl userService = new UserServiceImpl();
 
 //        List<Book> books = bookService.getMany();
 //        books.forEach(System.out::println);
 
-//        Book book = bookService.getOne(3);
-//
+//        Book book = bookService.getOne(6);
 //        System.out.println(book);
 
-//        BookForm bookForm = new BookForm("Toto à la plage", "Il fait beau");
+//        Author author = new Author(null,"toto","la menace","el toto");
+//        BookForm bookForm = new BookForm("Toto sur discord","Il fait beau",3,null);
 //        Book book = bookService.add(bookForm.toEntity());
 //        System.out.println(book);
 
-//        BookForm bookForm = new BookForm("Le Coran", "Merci à Dieu");
-//
-//        boolean book = bookService.update(3, bookForm.toEntity());  // en paramétre je prend le book du bookform
-//
-//        System.out.println(book);
-//        List<Book> books = bookService.getMany();
-//        books.forEach(System.out::println);
+        Book book = bookService.getAllInfoById(1);
+        book.affichage();
 
+
+
+//        Director director = new Director(null,"toto","la menace");
+//        MovieForm movieForm = new MovieForm("Toto sur discord","Il fait beau",null,director);
+//        Movie movie = movieService.add(movieForm.toEntity());
+//        System.out.println(movie);
+
+//        BookForm bookForm = new BookForm("Toto au beau vivier","Il fait beau");
+//        System.out.println(bookService.update(6,bookForm.toEntity()));
+
+//        List<Movie> movies = movieService.getMany();
+//        movies.forEach(System.out::println);
+
+//        Movie movie = movieService.getOne(6);
+//        System.out.println(movie);
+
+//        MovieForm movieForm = new MovieForm("Toto à la plage","Il fait beau");
+//        Movie movie = movieService.add(movieForm.toEntity());
+//        System.out.println(movie);
+
+//        MovieForm movieForm = new MovieForm("Toto au beau vivier","Il fait beau");
+//        System.out.println(movieService.update(6,movieForm.toEntity()));
+
+//        System.out.println(movieService.delete(6));
+
+//        UserForm userForm = new UserForm("BeauVivier","prendsTonVerre@soulard.de","hick!");
+//        System.out.println(userService.register(userForm.toEntity()));
+//        System.out.println(userService.login("prendsTonVerre@soulard.be","hick!"));
 
 
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

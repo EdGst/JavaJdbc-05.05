@@ -1,22 +1,38 @@
 package org.example.repositories;
 
-import org.example.exception.BookException;
-import org.example.exception.BookNotFoundException;
+import org.example.exception.EntityException;
+import org.example.exception.EntityNotFoundException;
+import org.example.models.entities.Author;
 import org.example.models.entities.Book;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class BookRepositoryImpl extends BaseRepositoryImpl<Book> implements BookRepository {
 
 
-public class BookRepositoryImpl implements BookRepository {
+    public BookRepositoryImpl() {
+        super("BOOK", "BOOK_ID");
+    }
 
-    private Book buildBook(ResultSet rs){
+    @Override
+    protected Book buildEntity(ResultSet rs){
+
         try {
             return Book.builder()
-                    .id(rs.getInt("book_id"))
-                    .title(rs.getString("Title"))
-                    .description(rs.getString("Description"))
+                    .id(rs.getInt("BOOK_ID"))
+                    .title(rs.getString("TITLE"))
+                    .description(rs.getString("DESCRIPTION"))
+                    .authorId(rs.getInt("AUTHOR_ID"))
+                    .author(Author.builder()
+                            .id(rs.getInt("AUTHOR_ID"))
+                            .firstName(rs.getString("FIRSTNAME"))
+                            .lastName(rs.getString("LASTNAME"))
+                            .pseudo(rs.getString("PSEUDO"))
+                            .build()
+                    )
                     .build();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -24,137 +40,76 @@ public class BookRepositoryImpl implements BookRepository {
     }
 
     @Override
-    public Book getOne(Integer id)  {
+    public Book add(Book book,Connection conn){
 
-        try {
-            Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/DemoJdbc", "postgres", "postgres");
-            PreparedStatement psmt = conn.prepareStatement("Select * from book where book_id = ?"); // dire qu'on va envoyer une donnée avec le ?
-
-            psmt.setInt(1,id);
-
-
+        try{
+            PreparedStatement psmt = conn.prepareStatement("INSERT INTO BOOK (TITLE,DESCRIPTION,AUTHOR_ID) VALUES (?,?,?) RETURNING *");
+            psmt.setString(1, book.getTitle());
+            psmt.setString(2, book.getDescription());
+            psmt.setInt(3,book.getAuthorId());
             ResultSet rs = psmt.executeQuery();
+            if(!rs.next())
+                throw new EntityException("Failed");
 
-            if(!rs.next()){
-                throw new BookNotFoundException();
-            }
-            conn.close();
-            return buildBook(rs);
+            return buildEntity(rs);
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-    }
-
-    @Override
-    public List<Book> getMany() {
-
-
-        try {
-            Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/DemoJdbc", "postgres", "postgres");
-
-            Statement smt = conn.createStatement(); // permet d'écuter une requête
-            ResultSet rs = smt.executeQuery("Select * from Book");  // méthode qui va envoyer un résultat
-
-            List<Book> books = new ArrayList<>();  // on instancie une liste de book
-
-            while (rs.next()) {     // tant qu'il y a un résultat restant/à lire, renvoi un booleen
-
-                books.add(buildBook(rs));
-
-//                Integer id = rs.getInt("Book");
-//                String title = rs.getString("Title");
-//                String descr = rs.getString("Description");
-//
-//                Book book = new Book(id, title, description);
-//                Book book = new Book(rs.getInt("Book_id"), rs.getString("Title"), rs.getString("Description") );
-
-//                books.add(book);
-                // System.out.println(book);
-            }
-
-//            PreparedStatement preparedStatement = conn.prepareStatement("");
-            conn.close();
-            return books;
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
     @Override
     public Book add(Book book) {
 
-        try {
-            Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/DemoJdbc", "postgres", "postgres");
-            PreparedStatement psmt = conn.prepareStatement("Insert into book (Title, Description) values (?, ?) Returning *");
-
-            psmt.setString(1, book.getTitle());
-            psmt.setString(2 , book.getDescription());
-
-            ResultSet rs = psmt.executeQuery();
-
-            if (!rs.next())
-                throw new BookException("Failed");
-
-            conn.close();
-            return buildBook(rs);
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-
+        return add(book,openConnection());
     }
 
     @Override
     public boolean update(Integer id, Book book) {
 
         try {
-            Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/DemoJdbc", "postgres", "postgres");
-            PreparedStatement psmt = conn.prepareStatement("Update Book set title = ? ,description = ? where book_id = ?");
-
+            Connection conn = openConnection();
+            PreparedStatement psmt = conn.prepareStatement("UPDATE BOOK SET TITLE = ?, DESCRIPTION = ?, AUTHOR_ID = ? WHERE BOOK_ID = ?");
             psmt.setString(1,book.getTitle());
             psmt.setString(2, book.getDescription());
-            psmt.setInt(3, id);
+            psmt.setInt(3,book.getAuthorId());
+            psmt.setInt(4,id);
 
-            int nbRow = psmt.executeUpdate();
+            int nbRows = psmt.executeUpdate();
+
             conn.close();
 
-            return nbRow == 1;
-
+            return nbRows == 1;
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-
     }
 
+
     @Override
-    public boolean delete(Integer id) {
+    public Book getAllInfoByID(Integer id) {
 
         try {
-            Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/DemoJdbc", "postgres", "postgres");
-            PreparedStatement psmt = conn.prepareStatement("Delete from book where book_id = ?");
+            Connection conn = openConnection();
+
+            PreparedStatement psmt = conn.prepareStatement("select BOOK_ID, title, description, a.author_id, firstname, lastname, pseudo from book\n" +
+                    "join author a on a.author_id = book.author_id WHERE BOOK_ID = ?");
 
             psmt.setInt(1,id);
 
+            ResultSet rs = psmt.executeQuery();
 
-            int nbRow = psmt.executeUpdate();   // nbRow renvoie si il y a supression de ligne ou non
+            if(!rs.next()){
+                throw new EntityNotFoundException();
+            }
             conn.close();
-
-            return nbRow == 1;
-
-//            return psmt.executeUpdate() == 1;  //S'il renvoie 1, il renvoie vrai .... s'il renvoie autre chose, il renvoie faux
-
-
+            return buildEntity(rs);
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
 
     }
 }

@@ -1,8 +1,7 @@
 package org.example.repositories;
 
-import org.example.exception.UsersException;
-import org.example.exception.UsersNotFoundException;
 import org.example.models.entities.Users;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -30,10 +29,10 @@ public class UsersRepositoryImpl implements UsersRepository {
     @Override
     public Users getOne(Integer id) {
 
-        Connection conn = null;
+
         try {
-            conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/DemoJdbc", "postgres", "postgres");
-            PreparedStatement psmt = conn.prepareStatement("Select * from users where user_id");
+            Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/DemoJdbc", "postgres", "postgres");
+            PreparedStatement psmt = conn.prepareStatement("Select * from users where user_id = ?");
 
             psmt.setInt(1, id);
 
@@ -87,7 +86,8 @@ public class UsersRepositoryImpl implements UsersRepository {
 
             psmt.setString(1, "pseudo");
             psmt.setString(2, "email");
-            psmt.setString(3, "mdp");
+            String hashedPassword = BCrypt.hashpw(users.getMdp(), BCrypt.gensalt());
+            psmt.setString(3, hashedPassword);
 
             ResultSet rs = psmt.executeQuery();
 

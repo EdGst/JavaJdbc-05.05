@@ -1,10 +1,9 @@
 package org.example.services;
 
-import org.example.exception.BookNotFoundException;
-import org.example.models.entities.Book;
 import org.example.models.entities.Users;
 import org.example.repositories.UsersRepository;
 import org.example.repositories.UsersRepositoryImpl;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.List;
 
@@ -49,7 +48,9 @@ public class UsersServiceImpl {
         return true;
     }
 
-
+    public boolean checkPassword(String password, String hashedPassword) {
+        return BCrypt.checkpw(password, hashedPassword);
+    }
 
 
 }
