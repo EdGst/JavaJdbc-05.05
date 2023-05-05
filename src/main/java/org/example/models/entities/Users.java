@@ -10,6 +10,7 @@ public class Users {
     private String email;
     private String mdp;
 
+
     public Users(String pseudo, String email, String mdp) {
         this.pseudo = pseudo;
         this.email = email;
